@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 type QuickAction = {
   title: string;
@@ -23,7 +23,7 @@ const quickActions: QuickAction[] = [
   {
     title: 'Write a song',
     description: 'Explore lyrics and a hook',
-    prompt: 'Help me brainstorm a song. Let's find its theme and emotional direction.',
+    prompt: "Help me brainstorm a song. Let's find its theme and emotional direction.",
     symbol: '♫',
   },
   {
