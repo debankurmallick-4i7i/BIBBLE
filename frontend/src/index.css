@@ -1,40 +1,114 @@
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@400;500;600;700&display=swap');
+
+/* =================================
+   BIBBLE DESIGN SYSTEM
+================================= */
 
 :root {
-  font-family: 'DM Sans', 'Noto Sans Bengali', sans-serif;
-  color: #493943;
-  background: #fbf4ef;
+  font-family: 'Inter', sans-serif;
+
+  color: #40333E;
+  background: #FAF2ED;
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 
-  --ink: #493943;
-  --muted: #897780;
-  --line: #eeddd7;
-  --rose: #bb4e70;
-  --rose-dark: #a83e61;
-  --rose-soft: #f5d9d9;
-  --lavender: #eae1f1;
-  --lavender-ink: #64537c;
-  --paper: #fffdfb;
-  --cream: #fbf4ef;
-  --sidebar: #f5e9e4;
-  --green-soft: #e4eee1;
+  color-scheme: light;
+
+  /* BIBBLE COLORS */
+  --color-background: #FAF2ED;
+  --color-sidebar: #F5E8E3;
+  --color-surface: #FFFCFA;
+
+  --color-primary: #BD4C6C;
+  --color-primary-light: #F3D6D5;
+
+  --color-lavender: #E9E0F1;
+
+  --color-text: #40333E;
+  --color-muted: #857780;
+  --color-border: #EEDBD3;
+
+  /* BIBBLE TYPOGRAPHY */
+  --font-interface: 'Inter', sans-serif;
+  --font-bengali: 'Noto Serif Bengali', serif;
+
+  /* COMMON STYLES */
+  --radius-card: 20px;
+  --radius-button: 999px;
+
+  --shadow-soft: 0 4px 18px rgba(64, 51, 62, 0.04);
 }
+
+/* =================================
+   GLOBAL RESET
+================================= */
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: var(--cream);
+
+  font-family: var(--font-interface);
+
+  background: var(--color-background);
+  color: var(--color-text);
 }
 
-button, textarea, input {
+/* =================================
+   ROOT APPLICATION
+================================= */
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* =================================
+   TYPOGRAPHY
+================================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+p {
+  margin-top: 0;
+}
+
+.bn {
+  font-family: var(--font-bengali);
+}
+
+/* =================================
+   FORM ELEMENTS
+================================= */
+
+button,
+input,
+textarea,
+select {
   font: inherit;
 }
 
@@ -42,430 +116,31 @@ button {
   cursor: pointer;
 }
 
+input,
+textarea {
+  color: var(--color-text);
+}
+
 a {
   color: inherit;
   text-decoration: none;
 }
 
-.app-shell {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 0 38px;
+/* =================================
+   SELECTION
+================================= */
+
+::selection {
+  background: var(--color-primary-light);
+  color: var(--color-text);
 }
 
-.topbar {
-  min-height: 82px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--line);
-}
+/* =================================
+   RESPONSIVE FOUNDATION
+================================= */
 
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: .16em;
-}
-
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--rose);
-  color: white;
-  font-family: 'Noto Sans Bengali', sans-serif;
-  font-size: 18px;
-  letter-spacing: 0;
-}
-
-.beta-tag {
-  border: 1px solid var(--line);
-  border-radius: 99px;
-  padding: 5px 9px;
-  color: var(--muted);
-  font-size: 9px;
-  letter-spacing: .1em;
-  font-weight: 600;
-}
-
-.top-nav {
-  display: flex;
-  gap: 30px;
-  height: 82px;
-  align-items: center;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.top-nav a {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  border-bottom: 2px solid transparent;
-}
-
-.top-nav a.active {
-  color: var(--rose-dark);
-  border-bottom-color: var(--rose);
-  font-weight: 600;
-}
-
-.profile-button {
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--rose-soft);
-  color: var(--rose-dark);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.hero {
-  max-width: 760px;
-  margin: 78px auto 0;
-  text-align: center;
-}
-
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--rose-dark);
-  font-size: 11px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  font-weight: 700;
-}
-
-.eyebrow-dot {
-  width: 7px;
-  height: 7px;
-  background: var(--rose);
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px var(--rose-soft);
-}
-
-h1 {
-  margin: 22px 0 14px;
-  font-size: clamp(42px, 6vw, 68px);
-  line-height: 1.12;
-  letter-spacing: -.045em;
-  font-weight: 600;
-}
-
-h1 em {
-  font-family: 'Playfair Display', Georgia, serif;
-  color: var(--rose);
-  font-weight: 500;
-  letter-spacing: -.035em;
-}
-
-.hero-copy {
-  max-width: 545px;
-  margin: 0 auto;
-  color: var(--muted);
-  font-size: 15px;
-  line-height: 1.8;
-}
-
-.composer-card {
-  margin-top: 34px;
-  padding: 20px 20px 14px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  box-shadow: 0 14px 40px rgba(111, 67, 78, .055);
-  text-align: left;
-}
-
-.composer-card:focus-within {
-  border-color: #d99bab;
-  box-shadow: 0 0 0 3px rgba(187, 78, 112, .09);
-}
-
-.composer-card textarea {
-  width: 100%;
-  min-height: 105px;
-  resize: vertical;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--ink);
-  font-size: 15px;
-  line-height: 1.8;
-}
-
-.composer-card textarea::placeholder {
-  color: #a9999c;
-}
-
-.composer-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #f3e8e3;
-}
-
-.language-control {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-
-.language-chip {
-  border: 1px solid transparent;
-  border-radius: 99px;
-  padding: 7px 10px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.language-chip.selected {
-  background: var(--lavender);
-  border-color: #e2d8ec;
-  color: var(--lavender-ink);
-  font-weight: 600;
-}
-
-.send-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 14px;
-  border: 0;
-  border-radius: 12px;
-  padding: 11px 15px;
-  background: var(--rose);
-  color: white;
-  font-size: 12px;
-  font-weight: 600;
-  transition: background .2s, transform .2s;
-}
-
-.send-button:hover {
-  background: var(--rose-dark);
-  transform: translateY(-1px);
-}
-
-.send-button span {
-  font-size: 16px;
-}
-
-.helper-text {
-  min-height: 18px;
-  margin: 11px 0 0;
-  color: #a9999c;
-  font-size: 11px;
-}
-
-.quick-section {
-  margin: 66px 0 0;
-}
-
-.section-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 19px;
-}
-
-.section-kicker {
-  margin: 0 0 8px;
-  color: var(--rose-dark);
-  font-size: 10px;
-  letter-spacing: .15em;
-  font-weight: 700;
-}
-
-h2 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -.035em;
-}
-
-.soft-note {
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.quick-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 13px;
-}
-
-.quick-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  min-height: 146px;
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 17px;
-  background: var(--paper);
-  text-align: left;
-  transition: transform .2s, border-color .2s, box-shadow .2s;
-}
-
-.quick-card:hover {
-  transform: translateY(-3px);
-  border-color: #d99bab;
-  box-shadow: 0 10px 24px rgba(111, 67, 78, .08);
-}
-
-.quick-symbol {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  margin-bottom: 17px;
-  border-radius: 11px;
-  background: var(--rose-soft);
-  color: var(--rose-dark);
-  font-size: 19px;
-}
-
-.quick-title {
-  color: var(--ink);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.quick-description {
-  margin-top: 5px;
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.card-arrow {
-  position: absolute;
-  top: 18px;
-  right: 17px;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.footer-note {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  margin: 58px 0 28px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
-  color: #a9999c;
-  font-size: 10px;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-@media (max-width: 760px) {
-  .app-shell {
-    padding: 0 20px;
-  }
-
-  .topbar {
-    min-height: 68px;
-  }
-
-  .top-nav {
-    height: 68px;
-    gap: 14px;
-    font-size: 11px;
-  }
-
-  .beta-tag {
-    display: none;
-  }
-
-  .hero {
-    margin-top: 62px;
-  }
-
-  .hero-copy {
-    font-size: 14px;
-  }
-
-  .quick-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .section-heading {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .footer-note {
-    flex-direction: column;
-    gap: 8px;
-  }
-}
-
-@media (max-width: 430px) {
-  .app-shell {
-    padding: 0 14px;
-  }
-
-  .brand {
-    font-size: 14px;
-  }
-
-  .top-nav {
-    gap: 10px;
-  }
-
-  .profile-button {
-    display: none;
-  }
-
-  h1 {
-    font-size: 42px;
-  }
-
-  .composer-card {
-    padding: 15px 13px 12px;
-  }
-
-  .composer-footer {
-    align-items: flex-end;
-  }
-
-  .language-control {
-    max-width: 175px;
-  }
-
-  .language-chip {
-    padding: 6px 8px;
-  }
-
-  .send-button {
-    gap: 7px;
-    padding: 10px 11px;
-  }
-
-  .quick-card {
-    min-height: 137px;
-    padding: 14px;
+@media (max-width: 768px) {
+  body {
+    min-width: 320px;
   }
 }
