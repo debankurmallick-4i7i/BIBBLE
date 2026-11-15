@@ -1,0 +1,150 @@
+.bibble-shell {
+  min-height: 100vh;
+  display: flex;
+  background: #faf2ed;
+  color: #40333e;
+  font-family: Inter, sans-serif;
+}
+
+.bibble-template-main {
+  flex: 1;
+  min-width: 0;
+  padding: 58px clamp(24px, 5vw, 72px);
+  box-sizing: border-box;
+}
+
+.bibble-template-header {
+  max-width: 850px;
+  margin: 0 auto 36px;
+}
+
+.bibble-template-eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #bd4c6c;
+}
+
+.bibble-template-header h1 {
+  font: 700 clamp(34px, 4vw, 48px) Georgia, serif;
+  margin: 12px 0;
+  color: #40333e;
+}
+
+.bibble-template-header p {
+  margin: 0;
+  color: #857780;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.bibble-template-grid {
+  max-width: 1000px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.bibble-template-card {
+  padding: 26px;
+  border: 1px solid #eedbd3;
+  border-radius: 20px;
+  background: #fffcfa;
+  box-shadow: 0 8px 24px #5b34400a;
+  min-height: 225px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.bibble-template-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+  color: #a83e5e;
+  background: #f3d6d5;
+}
+
+.bibble-template-icon.poem {
+  background: #e9e0f1;
+  color: #77618d;
+}
+
+.bibble-template-icon.song {
+  background: #f7e8c9;
+  color: #9b7130;
+}
+
+.bibble-template-icon.screenplay {
+  background: #dcece5;
+  color: #477b66;
+}
+
+.bibble-template-category {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+  color: #bd4c6c;
+}
+
+.bibble-template-card h2 {
+  font: 700 22px Georgia, serif;
+  margin: 8px 0;
+}
+
+.bibble-template-card p {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #857780;
+  margin: 0 0 20px;
+}
+
+.bibble-template-card button {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  border-radius: 11px;
+  padding: 11px 14px;
+  background: #bd4c6c;
+  color: white;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.bibble-template-card button:hover {
+  background: #a83e5e;
+}
+
+.bibble-template-note {
+  max-width: 1000px;
+  margin: 24px auto 0;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: #f3e9ef;
+  color: #705b6a;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  .bibble-template-main {
+    padding: 75px 18px 30px;
+  }
+
+  .bibble-template-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bibble-template-card {
+    min-height: unset;
+  }
+}

@@ -1,16 +1,33 @@
 
 const API_BASE_URL = "http://localhost:8000";
 
-// Common API response structure
+// ==============================
+// COMMON RESPONSE TYPES
+// ==============================
+
 interface ApiResponse {
   status: string;
   message: string;
   user_id?: string | null;
-  access_token?: string;
-  refresh_token?: string;
 }
 
-// Project structure returned by the backend
+export interface AuthResponse extends ApiResponse {
+  access_token?: string;
+  refresh_token?: string;
+  display_name?: string | null;
+}
+
+export interface UserProfile {
+  status: string;
+  user_id: string;
+  email: string;
+  display_name: string;
+}
+
+// ==============================
+// PROJECT TYPES
+// ==============================
+
 export interface Project {
   id: string;
   user_id?: string;
@@ -34,6 +51,7 @@ export interface UpdateProjectData {
   description?: string;
   status?: string;
 }
+
 interface ProjectsResponse {
   status: string;
   total_projects: number;
@@ -46,7 +64,128 @@ interface SingleProjectResponse {
   project: Project;
 }
 
-// Convert backend errors into readable messages
+// ==============================
+// CONVERSATION TYPES
+// ==============================
+
+export interface Conversation {
+  id: string;
+  user_id?: string;
+  project_id: string | null;
+  title: string;
+  language: string;
+  mood: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateConversationData {
+  title?: string;
+  project_id?: string | null;
+  language?: string;
+  mood?: string | null;
+}
+
+interface ConversationsResponse {
+  status: string;
+  total_conversations: number;
+  conversations: Conversation[];
+}
+
+interface SingleConversationResponse {
+  status: string;
+  message?: string;
+  conversation: Conversation;
+}
+
+// ==============================
+// MESSAGE TYPES
+// ==============================
+
+export type MessageRole = "user" | "assistant";
+
+export interface ChatMessage {
+  id: string;
+  conversation_id: string;
+  user_id?: string;
+  role: MessageRole;
+  content: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface CreateMessageData {
+  role: MessageRole;
+  content: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface MessagesResponse {
+  status: string;
+  total_messages: number;
+  messages: ChatMessage[];
+}
+
+interface SingleMessageResponse {
+  status: string;
+  message?: string;
+  saved_message: ChatMessage;
+  conversation_id: string;
+}
+
+// ==============================
+// CREATIVE DOCUMENT TYPES
+// ==============================
+
+export type DocumentType =
+  | "story"
+  | "poem"
+  | "song"
+  | "screenplay"
+  | "notes"
+  | "other";
+
+export interface CreativeDocument {
+  id: string;
+  user_id: string;
+  project_id: string | null;
+  title: string;
+  content: string;
+  document_type: DocumentType;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateDocumentData {
+  title?: string;
+  content?: string;
+  document_type?: DocumentType;
+  project_id?: string | null;
+}
+
+export interface UpdateDocumentData {
+  title?: string;
+  content?: string;
+  document_type?: DocumentType;
+  project_id?: string | null;
+}
+
+interface DocumentsResponse {
+  status: string;
+  total_documents: number;
+  documents: CreativeDocument[];
+}
+
+interface SingleDocumentResponse {
+  status: string;
+  message?: string;
+  document: CreativeDocument;
+}
+
+// ==============================
+// ERROR HANDLING
+// ==============================
+
 function getErrorMessage(data: any): string {
   const detail = data?.detail;
 
@@ -77,7 +216,10 @@ function getErrorMessage(data: any): string {
   return "Something went wrong. Please try again.";
 }
 
-// Common API request handler
+// ==============================
+// COMMON API REQUEST HANDLER
+// ==============================
+
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -111,35 +253,59 @@ async function apiRequest<T>(
   return data as T;
 }
 
-// Register a new user
+// ==============================
+// AUTHENTICATION
+// ==============================
+
 export async function registerUser(
   email: string,
-  password: string
-): Promise<ApiResponse> {
-  return apiRequest<ApiResponse>("/api/auth/register", {
+  password: string,
+  name: string
+): Promise<AuthResponse> {
+  return apiRequest<AuthResponse>("/api/auth/register", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      name: name.trim(),
+      email,
+      password,
+    }),
   });
 }
 
-// Login an existing user
 export async function loginUser(
   email: string,
   password: string
-): Promise<ApiResponse> {
-  return apiRequest<ApiResponse>("/api/auth/login", {
+): Promise<AuthResponse> {
+  return apiRequest<AuthResponse>("/api/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
 }
 
-// Fetch all projects belonging to the logged-in user
+export async function getMyProfile(): Promise<UserProfile> {
+  return apiRequest<UserProfile>("/api/auth/me");
+}
+
+export async function updateMyProfile(
+  displayName: string
+): Promise<UserProfile> {
+  return apiRequest<UserProfile>("/api/auth/me", {
+    method: "PATCH",
+    body: JSON.stringify({
+      display_name: displayName.trim(),
+    }),
+  });
+}
+
+// ==============================
+// PROJECT MANAGEMENT
+// ==============================
+
 export async function getProjects(): Promise<Project[]> {
   const response = await apiRequest<ProjectsResponse>("/api/projects");
   return response.projects;
 }
 
-// Create a new project
 export async function createProject(
   project: CreateProjectData
 ): Promise<Project> {
@@ -155,7 +321,6 @@ export async function createProject(
   return response.project;
 }
 
-// Fetch one project by ID
 export async function getProject(
   projectId: string
 ): Promise<Project> {
@@ -166,7 +331,6 @@ export async function getProject(
   return response.project;
 }
 
-// Update a project
 export async function updateProject(
   projectId: string,
   updates: UpdateProjectData
@@ -182,11 +346,165 @@ export async function updateProject(
   return response.project;
 }
 
-// Delete a project
 export async function deleteProject(
   projectId: string
 ): Promise<void> {
   await apiRequest<void>(`/api/projects/${projectId}`, {
+    method: "DELETE",
+  });
+}
+
+// ==============================
+// CONVERSATION MANAGEMENT
+// ==============================
+
+export async function createConversation(
+  conversation: CreateConversationData = {}
+): Promise<Conversation> {
+  const response = await apiRequest<SingleConversationResponse>(
+    "/api/conversations",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        title: conversation.title || "New conversation",
+        project_id: conversation.project_id ?? null,
+        language: conversation.language || "auto",
+        mood: conversation.mood ?? null,
+      }),
+    }
+  );
+
+  return response.conversation;
+}
+
+export async function getConversations(
+  projectId?: string | null
+): Promise<Conversation[]> {
+  const query = projectId
+    ? `?project_id=${encodeURIComponent(projectId)}`
+    : "";
+
+  const response = await apiRequest<ConversationsResponse>(
+    `/api/conversations${query}`
+  );
+
+  return response.conversations;
+}
+
+export async function getConversation(
+  conversationId: string
+): Promise<Conversation> {
+  const response = await apiRequest<SingleConversationResponse>(
+    `/api/conversations/${conversationId}`
+  );
+
+  return response.conversation;
+}
+
+// ==============================
+// MESSAGE MANAGEMENT
+// ==============================
+
+export async function getMessages(
+  conversationId: string
+): Promise<ChatMessage[]> {
+  const response = await apiRequest<MessagesResponse>(
+    `/api/conversations/${conversationId}/messages`
+  );
+
+  return response.messages;
+}
+
+export async function sendMessage(
+  conversationId: string,
+  message: CreateMessageData
+): Promise<ChatMessage> {
+  const response = await apiRequest<SingleMessageResponse>(
+    `/api/conversations/${conversationId}/messages`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        role: message.role,
+        content: message.content,
+        metadata: message.metadata || {},
+      }),
+    }
+  );
+
+  return response.saved_message;
+}
+
+// ==============================
+// CREATIVE DOCUMENT MANAGEMENT
+// ==============================
+
+// Fetch all documents, optionally filtered by project.
+export async function getDocuments(
+  projectId?: string | null
+): Promise<CreativeDocument[]> {
+  const query = projectId
+    ? `?project_id=${encodeURIComponent(projectId)}`
+    : "";
+
+  const response = await apiRequest<DocumentsResponse>(
+    `/api/documents${query}`
+  );
+
+  return response.documents;
+}
+
+// Fetch one document by ID.
+export async function getDocument(
+  documentId: string
+): Promise<CreativeDocument> {
+  const response = await apiRequest<SingleDocumentResponse>(
+    `/api/documents/${documentId}`
+  );
+
+  return response.document;
+}
+
+// Create and save a new document.
+export async function createDocument(
+  document: CreateDocumentData = {}
+): Promise<CreativeDocument> {
+  const response = await apiRequest<SingleDocumentResponse>(
+    "/api/documents",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        title: document.title || "Untitled document",
+        content: document.content || "",
+        document_type: document.document_type || "other",
+        project_id: document.project_id ?? null,
+      }),
+    }
+  );
+
+  return response.document;
+}
+
+// Update an existing document.
+export async function updateDocument(
+  documentId: string,
+  updates: UpdateDocumentData
+): Promise<CreativeDocument> {
+  const response = await apiRequest<SingleDocumentResponse>(
+    `/api/documents/${documentId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(updates),
+    }
+  );
+
+  return response.document;
+}
+
+// Delete a document.
+export async function deleteDocument(
+  documentId: string
+): Promise<void> {
+  await apiRequest<void>(`/api/documents/${documentId}`, {
     method: "DELETE",
   });
 }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, type FormEvent } from 'react'
 
 import {
@@ -9,18 +8,28 @@ import {
   Sparkles,
   BookOpen,
   PenLine,
+  X,
+  UserRound,
+  LogOut,
+  Save,
 } from 'lucide-react'
 
 import {
   loginUser,
   registerUser,
+  getMyProfile,
+  updateMyProfile,
 } from './services/api'
 
-import type { Project } from './services/api'
+import type {
+  Project,
+  UserProfile,
+} from './services/api'
 
 import Dashboard from './pages/Dashboard'
 import AIWorkspace from './pages/AIWorkspace'
 import MyProjects from './pages/MyProjects'
+import Templates from './pages/Templates'
 
 import './App.css'
 
@@ -29,6 +38,7 @@ type AppView =
   | 'workspace'
   | 'projects'
   | 'project-workspace'
+  | 'templates'
 
 const INACTIVITY_LIMIT = 36 * 60 * 60 * 1000
 
@@ -36,7 +46,6 @@ const LAST_ACTIVITY_KEY = 'bibble_last_activity'
 const ACCESS_TOKEN_KEY = 'bibble_access_token'
 const REFRESH_TOKEN_KEY = 'bibble_refresh_token'
 
-// Remove the local development session.
 function clearSession() {
   localStorage.removeItem(ACCESS_TOKEN_KEY)
   localStorage.removeItem(REFRESH_TOKEN_KEY)
@@ -46,7 +55,6 @@ function clearSession() {
   sessionStorage.removeItem(REFRESH_TOKEN_KEY)
 }
 
-// Restore an existing session if it has not expired.
 function restoreSession(): boolean {
   const token =
     localStorage.getItem(ACCESS_TOKEN_KEY) ||
@@ -73,7 +81,6 @@ function restoreSession(): boolean {
     return false
   }
 
-  // Migrate older sessionStorage tokens.
   localStorage.setItem(ACCESS_TOKEN_KEY, token)
 
   const refreshToken =
@@ -112,11 +119,69 @@ function App() {
 
   const [initialPrompt, setInitialPrompt] = useState('')
 
-  // Store the currently selected project.
   const [selectedProject, setSelectedProject] =
     useState<Project | null>(null)
 
+  // Real authenticated user profile.
+  const [profile, setProfile] =
+    useState<UserProfile | null>(null)
+
+  const [isProfileLoading, setIsProfileLoading] =
+    useState(false)
+
+  const [isProfileEditorOpen, setIsProfileEditorOpen] =
+    useState(false)
+
+  const [profileName, setProfileName] = useState('')
+  const [profileNotice, setProfileNotice] = useState('')
+  const [isSavingProfile, setIsSavingProfile] =
+    useState(false)
+
   const isRegister = mode === 'register'
+
+  // Load the real profile whenever an authenticated session is available.
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setProfile(null)
+      return
+    }
+
+    let cancelled = false
+
+    async function loadProfile() {
+      setIsProfileLoading(true)
+
+      try {
+        const userProfile = await getMyProfile()
+
+        if (!cancelled) {
+          setProfile(userProfile)
+          setProfileName(userProfile.display_name)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          clearSession()
+          setIsAuthenticated(false)
+          setProfile(null)
+          setNotice(
+            error instanceof Error
+              ? error.message
+              : 'Your session is invalid. Please log in again.'
+          )
+        }
+      } finally {
+        if (!cancelled) {
+          setIsProfileLoading(false)
+        }
+      }
+    }
+
+    loadProfile()
+
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated])
 
   // Monitor activity and automatically log out after 36 hours.
   useEffect(() => {
@@ -147,12 +212,11 @@ function App() {
         Date.now() - lastActivity >= INACTIVITY_LIMIT
       ) {
         clearSession()
-
         setIsAuthenticated(false)
+        setProfile(null)
         setCurrentView('dashboard')
         setInitialPrompt('')
         setSelectedProject(null)
-
         setNotice(
           'Your session expired due to inactivity. Please log in again.'
         )
@@ -198,7 +262,8 @@ function App() {
       if (isRegister) {
         const response = await registerUser(
           email,
-          password
+          password,
+          name
         )
 
         setNotice(response.message)
@@ -232,11 +297,11 @@ function App() {
           String(Date.now())
         )
 
-        setIsAuthenticated(true)
         setCurrentView('dashboard')
         setInitialPrompt('')
         setSelectedProject(null)
         setNotice('')
+        setIsAuthenticated(true)
       }
     } catch (error) {
       setNotice(
@@ -271,70 +336,381 @@ function App() {
     setCurrentView('project-workspace')
   }
 
-  // Return to the dashboard.
   function returnToDashboard() {
     setCurrentView('dashboard')
     setInitialPrompt('')
     setSelectedProject(null)
   }
 
-  // Return from a project workspace to My Projects.
   function returnToProjects() {
     setCurrentView('projects')
     setInitialPrompt('')
   }
 
+  // Open the Templates page.
+  function openTemplates() {
+    setCurrentView('templates')
+    setInitialPrompt('')
+    setSelectedProject(null)
+  }
+
+  // Open the profile editor.
+  function openProfileEditor() {
+    if (!profile) return
+
+    setProfileName(profile.display_name)
+    setProfileNotice('')
+    setIsProfileEditorOpen(true)
+  }
+
+  // Save the edited name to Supabase Auth metadata.
+  async function handleProfileUpdate(
+    event: FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault()
+
+    const trimmedName = profileName.trim()
+
+    if (!trimmedName) {
+      setProfileNotice('Please enter a valid name.')
+      return
+    }
+
+    setIsSavingProfile(true)
+    setProfileNotice('')
+
+    try {
+      const updatedProfile = await updateMyProfile(trimmedName)
+
+      setProfile(updatedProfile)
+      setProfileName(updatedProfile.display_name)
+      setProfileNotice('Your profile has been updated.')
+
+      window.setTimeout(() => {
+        setIsProfileEditorOpen(false)
+        setProfileNotice('')
+      }, 900)
+    } catch (error) {
+      setProfileNotice(
+        error instanceof Error
+          ? error.message
+          : 'Could not update your profile.'
+      )
+    } finally {
+      setIsSavingProfile(false)
+    }
+  }
+
+  // Log out and clear local session data.
+  function handleLogout() {
+    clearSession()
+    setIsAuthenticated(false)
+    setProfile(null)
+    setIsProfileEditorOpen(false)
+    setSelectedProject(null)
+    setInitialPrompt('')
+    setCurrentView('dashboard')
+    setEmail('')
+    setPassword('')
+    setName('')
+    setNotice('You have been logged out.')
+  }
+
   // Authenticated application.
   if (isAuthenticated) {
-
-    // Dedicated project workspace.
-    if (
-      currentView === 'project-workspace' &&
-      selectedProject
-    ) {
+    if (isProfileLoading || !profile) {
       return (
-        <AIWorkspace
-          project={selectedProject}
-          onBackToProjects={returnToProjects}
-        />
+        <main className="auth-page">
+          <section className="form-panel">
+            <div className="form-card">
+              <div className="brand">
+                <span className="brand-icon">
+                  <Feather size={21} />
+                </span>
+                <span className="brand-name">Bibble</span>
+              </div>
+              <p>Loading your creative space...</p>
+            </div>
+          </section>
+        </main>
       )
     }
 
-    // General AI Companion.
-    if (currentView === 'workspace') {
-      return (
-        <AIWorkspace
-          onBackToDashboard={returnToDashboard}
-          initialPrompt={initialPrompt}
-        />
-      )
-    }
-
-    // My Projects page.
-    if (currentView === 'projects') {
-      return (
-        <MyProjects
-          onBackToDashboard={returnToDashboard}
-          onOpenProject={openProject}
-        />
-      )
-    }
-
-    // Dashboard.
     return (
-      <Dashboard
-        onOpenCompanion={openCompanion}
-        onOpenProjects={() => {
-          setCurrentView('projects')
-        }}
-      />
+      <>
+       {currentView === 'project-workspace' && selectedProject ? (
+  <AIWorkspace
+    project={selectedProject}
+    onBackToProjects={returnToProjects}
+    onOpenProjects={() => setCurrentView('projects')}
+    onOpenTemplates={openTemplates}
+  />
+       ) : currentView === 'workspace' ? (
+  <AIWorkspace
+    onBackToDashboard={returnToDashboard}
+    initialPrompt={initialPrompt}
+    onOpenProjects={() => setCurrentView('projects')}
+    onOpenTemplates={openTemplates}
+  />
+        ) : currentView === 'projects' ? (
+          <MyProjects
+            onBackToDashboard={returnToDashboard}
+            onOpenProject={openProject}
+          />
+        ) : currentView === 'templates' ? (
+          <Templates
+            onBackToDashboard={returnToDashboard}
+            onOpenProjects={() => setCurrentView('projects')}
+            onOpenCompanion={openCompanion}
+            userName={profile.display_name}
+            userEmail={profile.email}
+          />
+        ) : (
+          <Dashboard
+            onOpenCompanion={openCompanion}
+            onOpenProjects={() => setCurrentView('projects')}
+            onOpenTemplates={openTemplates}
+            onOpenProject={openProject}
+            userName={profile.display_name}
+            userEmail={profile.email}
+            onEditProfile={openProfileEditor}
+            onLogout={handleLogout}
+          />
+        )}
+
+        {isProfileEditorOpen && (
+          <div
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) {
+                setIsProfileEditorOpen(false)
+              }
+            }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 20,
+              background: 'rgba(45, 32, 39, 0.42)',
+              backdropFilter: 'blur(5px)',
+            }}
+          >
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="profile-editor-title"
+              style={{
+                width: '100%',
+                maxWidth: 430,
+                padding: 28,
+                borderRadius: 22,
+                background: '#FFFCFA',
+                color: '#40333E',
+                boxShadow: '0 20px 70px rgba(45, 32, 39, 0.18)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 22,
+                }}
+              >
+                <div>
+                  <span
+                    style={{
+                      color: '#BD4C6C',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      letterSpacing: 1.2,
+                    }}
+                  >
+                    YOUR ACCOUNT
+                  </span>
+                  <h2
+                    id="profile-editor-title"
+                    style={{ margin: '7px 0 0', fontSize: 24 }}
+                  >
+                    Edit profile
+                  </h2>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsProfileEditorOpen(false)}
+                  aria-label="Close profile editor"
+                  style={{
+                    border: 0,
+                    background: '#F5E8E3',
+                    borderRadius: 12,
+                    padding: 9,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <X size={19} />
+                </button>
+              </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 13,
+                  marginBottom: 22,
+                  padding: 14,
+                  borderRadius: 15,
+                  background: '#F5E8E3',
+                }}
+              >
+                <span
+                  style={{
+                    width: 44,
+                    height: 44,
+                    display: 'grid',
+                    placeItems: 'center',
+                    borderRadius: '50%',
+                    background: '#BD4C6C',
+                    color: 'white',
+                  }}
+                >
+                  <UserRound size={21} />
+                </span>
+
+                <div style={{ minWidth: 0 }}>
+                  <strong>{profile.display_name}</strong>
+                  <p
+                    style={{
+                      margin: '4px 0 0',
+                      fontSize: 13,
+                      color: '#857780',
+                      overflowWrap: 'anywhere',
+                    }}
+                  >
+                    {profile.email}
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={handleProfileUpdate}>
+                <label
+                  htmlFor="profile-display-name"
+                  style={{
+                    display: 'block',
+                    marginBottom: 8,
+                    fontSize: 14,
+                    fontWeight: 600,
+                  }}
+                >
+                  Display name
+                </label>
+
+                <input
+                  id="profile-display-name"
+                  type="text"
+                  value={profileName}
+                  onChange={(event) =>
+                    setProfileName(event.target.value)
+                  }
+                  maxLength={80}
+                  required
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    padding: '13px 14px',
+                    border: '1px solid #EEDBD3',
+                    borderRadius: 12,
+                    background: '#FFFCFA',
+                    color: '#40333E',
+                    fontSize: 15,
+                    outlineColor: '#BD4C6C',
+                  }}
+                />
+
+                <p
+                  style={{
+                    margin: '8px 0 18px',
+                    fontSize: 12,
+                    color: '#857780',
+                  }}
+                >
+                  Your name is saved to your account.
+                </p>
+
+                {profileNotice && (
+                  <p
+                    role="status"
+                    style={{
+                      marginBottom: 14,
+                      fontSize: 13,
+                      color: profileNotice.includes('updated')
+                        ? '#287A52'
+                        : '#BD4C6C',
+                    }}
+                  >
+                    {profileNotice}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isSavingProfile}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 9,
+                    padding: '13px 16px',
+                    border: 0,
+                    borderRadius: 12,
+                    background: '#BD4C6C',
+                    color: 'white',
+                    fontWeight: 600,
+                    cursor: isSavingProfile ? 'wait' : 'pointer',
+                    opacity: isSavingProfile ? 0.7 : 1,
+                  }}
+                >
+                  <Save size={17} />
+                  {isSavingProfile ? 'Saving...' : 'Save changes'}
+                </button>
+              </form>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  marginTop: 12,
+                  padding: 12,
+                  border: '1px solid #EEDBD3',
+                  borderRadius: 12,
+                  background: 'transparent',
+                  color: '#BD4C6C',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                <LogOut size={17} />
+                Log out
+              </button>
+            </section>
+          </div>
+        )}
+      </>
     )
   }
 
   // Login and registration screen.
   return (
     <main className="auth-page">
-
       <header className="auth-header">
         <a
           href="/"
@@ -344,10 +720,7 @@ function App() {
           <span className="brand-icon">
             <Feather size={21} />
           </span>
-
-          <span className="brand-name">
-            Bibble
-          </span>
+          <span className="brand-name">Bibble</span>
         </a>
 
         <div className="header-caption">
@@ -358,10 +731,8 @@ function App() {
       </header>
 
       <section className="auth-layout">
-
         <aside className="welcome-panel">
           <div className="welcome-content">
-
             <span className="eyebrow">
               <Sparkles size={14} />
               A SPACE FOR YOUR IMAGINATION
@@ -383,12 +754,10 @@ function App() {
             </p>
 
             <div className="feature-list">
-
               <div className="feature-item">
                 <span className="feature-icon pink">
                   <PenLine size={19} />
                 </span>
-
                 <div>
                   <strong>Find your voice</strong>
                   <span>
@@ -401,7 +770,6 @@ function App() {
                 <span className="feature-icon lavender">
                   <BookOpen size={19} />
                 </span>
-
                 <div>
                   <strong>Build your stories</strong>
                   <span>
@@ -409,7 +777,6 @@ function App() {
                   </span>
                 </div>
               </div>
-
             </div>
           </div>
 
@@ -420,15 +787,11 @@ function App() {
 
         <section className="form-panel">
           <div className="form-card">
-
             <div className="mobile-brand">
               <span className="brand-icon">
                 <Feather size={20} />
               </span>
-
-              <span className="brand-name">
-                Bibble
-              </span>
+              <span className="brand-name">Bibble</span>
             </div>
 
             <div className="form-heading">
@@ -456,7 +819,6 @@ function App() {
             </div>
 
             <div className="auth-tabs" role="tablist">
-
               <button
                 type="button"
                 role="tab"
@@ -476,11 +838,9 @@ function App() {
               >
                 Create account
               </button>
-
             </div>
 
             <form onSubmit={handleSubmit}>
-
               {isRegister && (
                 <div className="form-field">
                   <label htmlFor="name">
@@ -496,6 +856,7 @@ function App() {
                       setName(event.target.value)
                     }
                     autoComplete="name"
+                    maxLength={80}
                     required
                   />
                 </div>
@@ -520,7 +881,6 @@ function App() {
               </div>
 
               <div className="form-field">
-
                 <div className="label-row">
                   <label htmlFor="password">
                     Password
@@ -599,7 +959,6 @@ function App() {
                   {notice}
                 </p>
               )}
-
             </form>
 
             <div className="form-divider">
@@ -614,9 +973,7 @@ function App() {
               <button
                 type="button"
                 onClick={() =>
-                  changeMode(
-                    isRegister ? 'login' : 'register'
-                  )
+                  changeMode(isRegister ? 'login' : 'register')
                 }
               >
                 {isRegister ? 'Log in' : 'Create one'}
@@ -627,19 +984,16 @@ function App() {
               By continuing, you agree to use Bibble responsibly and respect
               the creativity of others.
             </p>
-
           </div>
         </section>
       </section>
 
       <footer className="auth-bottom">
         <span>© 2026 Bibble</span>
-
         <span>
           Made with imagination <span className="heart">♥</span>
         </span>
       </footer>
-
     </main>
   )
 }
