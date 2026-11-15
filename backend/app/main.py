@@ -1,4 +1,4 @@
-
+import json
 import os
 from datetime import datetime, timezone
 from typing import Any, Literal
@@ -7,12 +7,15 @@ import httpx
 from dotenv import load_dotenv
 
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel, EmailStr, Field
 
 from supabase import create_client, Client
+
+from app.ai_service import stream_gemini_response
 
 
 # ==========================================
@@ -163,6 +166,11 @@ class MessageCreateRequest(BaseModel):
     role: Literal["user", "assistant"]
     content: str
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class GenerateResponseRequest(BaseModel):
+    prompt: str = Field(min_length=1, max_length=12000)
+    action: str = "chat"
 
 
 # ==========================================
@@ -946,6 +954,154 @@ def create_message(
             status_code=500,
             detail="Could not save message."
         )
+# ==========================================
+# AI RESPONSE GENERATION
+# ==========================================
+
+@app.post("/api/conversations/{conversation_id}/generate")
+def generate_conversation_response(
+    conversation_id: str,
+    request: GenerateResponseRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    current_user=Depends(get_current_user)
+):
+    try:
+        user_supabase = get_user_supabase(credentials)
+        user_id = str(current_user.id)
+
+        # Verify conversation ownership before generating.
+        conversation = get_owned_conversation(
+            user_supabase,
+            conversation_id,
+            user_id
+        )
+
+        # Retrieve recent conversation history.
+        history_response = (
+            user_supabase.table("messages")
+            .select("role, content, created_at")
+            .eq("conversation_id", conversation_id)
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .limit(20)
+            .execute()
+        )
+
+        history = list(reversed(history_response.data or []))
+
+        # Avoid adding the latest user message twice.
+        if history and (
+            history[-1]["role"] == "user"
+            and history[-1]["content"].strip() == request.prompt.strip()
+        ):
+            history.pop()
+
+        conversation_context = "\n".join(
+            f'{message["role"].upper()}: {message["content"]}'
+            for message in history
+        )
+
+        full_prompt = f"""
+You are BIBBLE, an AI Creative Companion.
+
+Help the user develop their creative work while preserving
+their individual creative voice.
+
+Previous conversation:
+{conversation_context}
+
+Current user message:
+{request.prompt}
+
+Respond naturally and helpfully.
+"""
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        print("AI generation preparation failed:", repr(error))
+        raise HTTPException(
+            status_code=500,
+            detail="Could not prepare AI response."
+        )
+
+    def generate_stream():
+        generated_text = ""
+
+        try:
+            for chunk in stream_gemini_response(
+                full_prompt,
+                action=request.action
+            ):
+                generated_text += chunk
+
+                yield (
+                    "data: "
+                    + json.dumps({"type": "delta", "text": chunk})
+                    + "\n\n"
+                )
+
+            if not generated_text.strip():
+                raise RuntimeError("The AI returned an empty response.")
+
+            # Save the completed assistant response.
+            save_response = (
+                user_supabase.table("messages")
+                .insert({
+                    "conversation_id": conversation_id,
+                    "user_id": user_id,
+                    "role": "assistant",
+                    "content": generated_text,
+                    "metadata": {
+                        "action": request.action,
+                        "provider": "google-gemini"
+                    }
+                })
+                .execute()
+            )
+
+            if not save_response.data:
+                raise RuntimeError("Could not save the AI response.")
+
+            user_supabase.table("conversations").update({
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }).eq(
+                "id", conversation_id
+            ).eq(
+                "user_id", user_id
+            ).execute()
+
+            yield (
+                "data: "
+                + json.dumps({
+                    "type": "complete",
+                    "saved_message": save_response.data[0]
+                })
+                + "\n\n"
+            )
+
+        except Exception as error:
+            print("AI response generation failed:", repr(error))
+
+            yield (
+                "data: "
+                + json.dumps({
+                    "type": "error",
+                    "message": "AI generation failed. Please try again."
+                })
+                + "\n\n"
+            )
+
+    return StreamingResponse(
+        generate_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
 
 # ==========================================
 # 22. CREATIVE DOCUMENT REQUEST MODELS

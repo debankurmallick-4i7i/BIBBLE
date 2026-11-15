@@ -37,6 +37,7 @@ import {
   getConversations,
   getMessages,
   sendMessage,
+  generateAIResponse,
   getDocuments,
   createDocument,
   updateDocument,
@@ -136,6 +137,8 @@ export default function AIWorkspace({
     useState<Conversation | null>(null);
 
   const [messages, setMessages] = useState<SavedChatMessage[]>([]);
+
+  const [streamingText, setStreamingText] = useState("");
 
   const [isLoadingConversations, setIsLoadingConversations] =
     useState(true);
@@ -284,51 +287,75 @@ export default function AIWorkspace({
   };
 
   // Save a chat message.
-  const handleSend = async () => {
-    const trimmedPrompt = prompt.trim();
+// Save the user message and generate an AI response.
+const handleSend = async () => {
+  const trimmedPrompt = prompt.trim();
 
-    if (!trimmedPrompt || isSending) return;
+  if (!trimmedPrompt || isSending) return;
 
-    setIsSending(true);
-    setError("");
+  setIsSending(true);
+  setError("");
+  setStreamingText("");
 
-    try {
-      let conversation = activeConversation;
+  let assistantMessageStarted = false;
 
-      if (!conversation) {
-        conversation = await createConversation({
-          title: trimmedPrompt.slice(0, 60),
-          project_id: project?.id ?? null,
-          language: "auto",
-          mood: null,
-        });
+  try {
+    let conversation = activeConversation;
 
-        setActiveConversation(conversation);
-
-        setConversations((current) => [
-          conversation!,
-          ...current.filter((item) => item.id !== conversation!.id),
-        ]);
-      }
-
-      const savedMessage = await sendMessage(conversation.id, {
-        role: "user",
-        content: trimmedPrompt,
-        metadata: {},
+    if (!conversation) {
+      conversation = await createConversation({
+        title: trimmedPrompt.slice(0, 60),
+        project_id: project?.id ?? null,
+        language: "auto",
+        mood: null,
       });
 
-      setMessages((current) => [...current, savedMessage]);
-      setPrompt("");
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to send your message."
-      );
-    } finally {
-      setIsSending(false);
+      setActiveConversation(conversation);
+
+      setConversations((current) => [
+        conversation!,
+        ...current.filter((item) => item.id !== conversation!.id),
+      ]);
     }
-  };
+
+    const savedMessage = await sendMessage(conversation.id, {
+      role: "user",
+      content: trimmedPrompt,
+      metadata: {},
+    });
+
+    setMessages((current) => [...current, savedMessage]);
+    setPrompt("");
+
+    const completedMessage = await generateAIResponse(
+      conversation.id,
+      trimmedPrompt,
+      "chat",
+      (chunk) => {
+        assistantMessageStarted = true;
+        setStreamingText((current) => current + chunk);
+      }
+    );
+
+    setMessages((current) => [...current, completedMessage]);
+    setStreamingText("");
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Unable to generate an AI response."
+    );
+
+    if (assistantMessageStarted) {
+      setError(
+        "The response was interrupted. Please check your conversation before retrying."
+      );
+    }
+  } finally {
+    setStreamingText("");
+    setIsSending(false);
+  }
+};
 
   // Create a real document in the database.
   const handleCreateDocument = async () => {
@@ -1000,58 +1027,78 @@ Start writing here. Don't worry about making it perfect. Let the ideas flow."
               </span>
             </div>
 
-            <div className="workspace-message-list">
-              {isLoadingMessages ? (
-                <div className="workspace-empty-state">
-                  <div className="workspace-empty-icon">
-                    <Sparkles size={27} />
-                  </div>
-                  <h2>Opening your conversation...</h2>
-                  <p>Retrieving your saved messages.</p>
-                </div>
-              ) : messages.length === 0 ? (
-                <div className="workspace-empty-state">
-                  <div className="workspace-empty-icon">
-                    <Sparkles size={27} />
-                  </div>
+            
+<div className="workspace-message-list">
+  {isLoadingMessages ? (
+    <div className="workspace-empty-state">
+      <div className="workspace-empty-icon">
+        <Sparkles size={27} />
+      </div>
+      <h2>Opening your conversation...</h2>
+      <p>Retrieving your saved messages.</p>
+    </div>
+  ) : messages.length === 0 && !streamingText ? (
+    <div className="workspace-empty-state">
+      <div className="workspace-empty-icon">
+        <Sparkles size={27} />
+      </div>
 
-                  <h2>
-                    {project
-                      ? "Let's bring this project to life."
-                      : "Every idea has a beginning."}
-                  </h2>
+      <h2>
+        {project
+          ? "Let's bring this project to life."
+          : "Every idea has a beginning."}
+      </h2>
 
-                  <p>
-                    {project
-                      ? "Develop your ideas, explore new directions, and build your project one thought at a time."
-                      : "Share a thought, a feeling, or a half-written idea. Let's create something together."}
-                  </p>
-                </div>
-              ) : (
-                messages.map((message) => (
-                  <div
-                    className={`workspace-message workspace-message-${message.role}`}
-                    key={message.id}
-                  >
-                    {message.role === "assistant" && (
-                      <div className="workspace-message-avatar">
-                        <Sparkles size={16} />
-                      </div>
-                    )}
-
-                    <div className="workspace-message-content">
-                      {message.role === "assistant" && (
-                        <div className="workspace-message-author">
-                          Bibble AI
-                        </div>
-                      )}
-
-                      <p>{message.content}</p>
-                    </div>
-                  </div>
-                ))
-              )}
+      <p>
+        {project
+          ? "Develop your ideas, explore new directions, and build your project one thought at a time."
+          : "Share a thought, a feeling, or a half-written idea. Let's create something together."}
+      </p>
+    </div>
+  ) : (
+    <>
+      {messages.map((message) => (
+        <div
+          className={`workspace-message workspace-message-${message.role}`}
+          key={message.id}
+        >
+          {message.role === "assistant" && (
+            <div className="workspace-message-avatar">
+              <Sparkles size={16} />
             </div>
+          )}
+
+          <div className="workspace-message-content">
+            {message.role === "assistant" && (
+              <div className="workspace-message-author">
+                Bibble AI
+              </div>
+            )}
+
+            <p>{message.content}</p>
+          </div>
+        </div>
+      ))}
+
+      {streamingText && (
+        <div className="workspace-message workspace-message-assistant">
+          <div className="workspace-message-avatar">
+            <Sparkles size={16} />
+          </div>
+
+          <div className="workspace-message-content">
+            <div className="workspace-message-author">
+              Bibble AI
+            </div>
+
+            <p>{streamingText}</p>
+          </div>
+        </div>
+      )}
+    </>
+  )}
+</div>
+
 
             <div className="workspace-composer-area">
               {error && (

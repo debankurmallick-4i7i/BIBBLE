@@ -434,6 +434,101 @@ export async function sendMessage(
   return response.saved_message;
 }
 
+
+
+// ==============================
+// AI RESPONSE GENERATION
+// ==============================
+
+export async function generateAIResponse(
+  conversationId: string,
+  prompt: string,
+  action: string = "chat",
+  onDelta: (text: string) => void
+): Promise<ChatMessage> {
+  const token = localStorage.getItem("bibble_access_token");
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/conversations/${conversationId}/generate`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ prompt, action }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    let errorData: any = {};
+
+    try {
+      errorData = JSON.parse(errorText);
+    } catch {
+      errorData = { detail: errorText };
+    }
+
+    throw new Error(getErrorMessage(errorData));
+  }
+
+  if (!response.body) {
+    throw new Error("The server did not provide a response stream.");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  let buffer = "";
+  let savedMessage: ChatMessage | null = null;
+
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      const events = buffer.split("\n\n");
+      buffer = events.pop() || "";
+
+      for (const event of events) {
+        const dataLine = event
+          .split("\n")
+          .find((line) => line.startsWith("data: "));
+
+        if (!dataLine) continue;
+
+        const eventData = JSON.parse(dataLine.slice(6));
+
+        if (eventData.type === "delta") {
+          onDelta(eventData.text);
+        }
+
+        if (eventData.type === "complete") {
+          savedMessage = eventData.saved_message;
+        }
+
+        if (eventData.type === "error") {
+          throw new Error(eventData.message);
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  if (!savedMessage) {
+    throw new Error("The AI response ended before it was saved.");
+  }
+
+  return savedMessage;
+}
+
+
+
 // ==============================
 // CREATIVE DOCUMENT MANAGEMENT
 // ==============================
