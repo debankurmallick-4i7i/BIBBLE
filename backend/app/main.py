@@ -26,13 +26,26 @@ load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise RuntimeError(
         "Supabase credentials are missing. Check your .env file."
     )
 
+if not SUPABASE_SERVICE_ROLE_KEY:
+    raise RuntimeError(
+        "SUPABASE_SERVICE_ROLE_KEY is missing. Check your backend .env file."
+    )
+
+# Normal client: respects the authenticated user's RLS policies.
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Privileged client: backend-only, used for verified AI message insertion.
+admin_supabase: Client = create_client(
+    SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY
+)
 
 
 # ==========================================
@@ -958,6 +971,7 @@ def create_message(
 # AI RESPONSE GENERATION
 # ==========================================
 
+
 @app.post("/api/conversations/{conversation_id}/generate")
 def generate_conversation_response(
     conversation_id: str,
@@ -969,8 +983,8 @@ def generate_conversation_response(
         user_supabase = get_user_supabase(credentials)
         user_id = str(current_user.id)
 
-        # Verify conversation ownership before generating.
-        conversation = get_owned_conversation(
+        # Verify conversation ownership using the user's token.
+        get_owned_conversation(
             user_supabase,
             conversation_id,
             user_id
@@ -1045,9 +1059,9 @@ Respond naturally and helpfully.
             if not generated_text.strip():
                 raise RuntimeError("The AI returned an empty response.")
 
-            # Save the completed assistant response.
+            # Save assistant response using the privileged backend client.
             save_response = (
-                user_supabase.table("messages")
+                admin_supabase.table("messages")
                 .insert({
                     "conversation_id": conversation_id,
                     "user_id": user_id,
@@ -1064,6 +1078,7 @@ Respond naturally and helpfully.
             if not save_response.data:
                 raise RuntimeError("Could not save the AI response.")
 
+            # Update conversation activity using the authenticated client.
             user_supabase.table("conversations").update({
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }).eq(

@@ -143,6 +143,9 @@ export default function AIWorkspace({
   const [messages, setMessages] = useState<SavedChatMessage[]>([]);
 
   const [streamingText, setStreamingText] = useState("");
+const [generationStatus, setGenerationStatus] = useState<
+  "thinking" | "creating" | null
+>(null);
 
   const [isLoadingConversations, setIsLoadingConversations] =
     useState(true);
@@ -292,6 +295,7 @@ export default function AIWorkspace({
 
   // Save a chat message.
 // Save the user message and generate an AI response.
+
 const handleSend = async () => {
   const trimmedPrompt = prompt.trim();
 
@@ -300,6 +304,7 @@ const handleSend = async () => {
   setIsSending(true);
   setError("");
   setStreamingText("");
+  setGenerationStatus(null);
 
   let assistantMessageStarted = false;
 
@@ -331,12 +336,15 @@ const handleSend = async () => {
     setMessages((current) => [...current, savedMessage]);
     setPrompt("");
 
+    setGenerationStatus("thinking");
+
     const completedMessage = await generateAIResponse(
       conversation.id,
       trimmedPrompt,
       "chat",
       (chunk) => {
         assistantMessageStarted = true;
+        setGenerationStatus("creating");
         setStreamingText((current) => current + chunk);
       }
     );
@@ -357,9 +365,11 @@ const handleSend = async () => {
     }
   } finally {
     setStreamingText("");
+    setGenerationStatus(null);
     setIsSending(false);
   }
 };
+
 
   // Create a real document in the database.
   const handleCreateDocument = async () => {
@@ -1034,6 +1044,7 @@ Start writing here. Don't worry about making it perfect. Let the ideas flow."
             </div>
 
             
+
 <div className="workspace-message-list">
   {isLoadingMessages ? (
     <div className="workspace-empty-state">
@@ -1043,7 +1054,7 @@ Start writing here. Don't worry about making it perfect. Let the ideas flow."
       <h2>Opening your conversation...</h2>
       <p>Retrieving your saved messages.</p>
     </div>
-  ) : messages.length === 0 && !streamingText ? (
+  ) : messages.length === 0 && !streamingText && !generationStatus ? (
     <div className="workspace-empty-state">
       <div className="workspace-empty-icon">
         <Sparkles size={27} />
@@ -1086,6 +1097,37 @@ Start writing here. Don't worry about making it perfect. Let the ideas flow."
         </div>
       ))}
 
+      {generationStatus && (
+        <div
+          className="workspace-message workspace-message-assistant"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="workspace-message-avatar">
+            <Sparkles size={16} />
+          </div>
+
+          <div className="workspace-message-content">
+            <div className="workspace-generation-indicator">
+              <span className="workspace-generation-text">
+                {generationStatus === "thinking"
+                  ? "Bibble is thinking"
+                  : "Bibble is creating"}
+              </span>
+
+              <span
+                className="workspace-generation-dots"
+                aria-hidden="true"
+              >
+                <span />
+                <span />
+                <span />
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {streamingText && (
         <div className="workspace-message workspace-message-assistant">
           <div className="workspace-message-avatar">
@@ -1104,6 +1146,7 @@ Start writing here. Don't worry about making it perfect. Let the ideas flow."
     </>
   )}
 </div>
+
 
 
             <div className="workspace-composer-area">
