@@ -439,19 +439,23 @@ function App() {
     return (
       <>
        {currentView === 'project-workspace' && selectedProject ? (
-  <AIWorkspace
-    project={selectedProject}
-    onBackToProjects={returnToProjects}
-    onOpenProjects={() => setCurrentView('projects')}
-    onOpenTemplates={openTemplates}
-  />
+ <AIWorkspace
+  project={selectedProject}
+  onBackToProjects={returnToProjects}
+  onOpenProjects={() => setCurrentView('projects')}
+  onOpenTemplates={openTemplates}
+  userName={profile.display_name}
+  userEmail={profile.email}
+/>
        ) : currentView === 'workspace' ? (
-  <AIWorkspace
-    onBackToDashboard={returnToDashboard}
-    initialPrompt={initialPrompt}
-    onOpenProjects={() => setCurrentView('projects')}
-    onOpenTemplates={openTemplates}
-  />
+ <AIWorkspace
+  onBackToDashboard={returnToDashboard}
+  initialPrompt={initialPrompt}
+  onOpenProjects={() => setCurrentView('projects')}
+  onOpenTemplates={openTemplates}
+  userName={profile.display_name}
+  userEmail={profile.email}
+/>
         ) : currentView === 'projects' ? (
           <MyProjects
             onBackToDashboard={returnToDashboard}

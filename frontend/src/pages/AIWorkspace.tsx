@@ -52,6 +52,8 @@ interface AIWorkspaceProps {
   onOpenTemplates?: () => void;
   initialPrompt?: string;
   project?: Project | null;
+  userName?: string;
+  userEmail?: string;
 }
 
 type WorkspaceMode = "chat" | "writing";
@@ -124,6 +126,8 @@ export default function AIWorkspace({
   onOpenTemplates,
   initialPrompt = "",
   project = null,
+    userName = "Creator",
+  userEmail = "",
 }: AIWorkspaceProps) {
   const [prompt, setPrompt] = useState(initialPrompt);
 
@@ -677,12 +681,14 @@ const handleSend = async () => {
           </button>
 
           <div className="workspace-profile">
-            <div className="workspace-avatar">B</div>
+ <div className="workspace-avatar">
+  {userName.trim().charAt(0).toUpperCase()}
+</div>
 
-            <div className="workspace-profile-info">
-              <strong>Creator</strong>
-              <span>Bibble workspace</span>
-            </div>
+<div className="workspace-profile-info">
+  <strong>{userName}</strong>
+  <span>{userEmail || "Bibble workspace"}</span>
+</div>
 
             <MoreHorizontal size={18} />
           </div>
