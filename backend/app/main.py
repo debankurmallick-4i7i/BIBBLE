@@ -173,7 +173,8 @@ class ConversationCreateRequest(BaseModel):
     project_id: str | None = None
     language: str = "auto"
     mood: str | None = None
-
+class ConversationUpdateRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
 
 class MessageCreateRequest(BaseModel):
     role: Literal["user", "assistant"]
@@ -847,6 +848,134 @@ def get_conversation(
             detail="Could not retrieve conversation."
         )
 
+
+# ==========================================
+# RENAME AN EXISTING CONVERSATION
+# ==========================================
+
+@app.patch("/api/conversations/{conversation_id}")
+def update_conversation(
+    conversation_id: str,
+    conversation_data: ConversationUpdateRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    current_user=Depends(get_current_user)
+):
+    try:
+        user_supabase = get_user_supabase(credentials)
+        user_id = str(current_user.id)
+
+        title = conversation_data.title.strip()
+
+        if not title:
+            raise HTTPException(
+                status_code=400,
+                detail="Conversation title cannot be empty."
+            )
+
+        # Confirm conversation ownership.
+        get_owned_conversation(
+            user_supabase,
+            conversation_id,
+            user_id
+        )
+
+        response = (
+            user_supabase.table("conversations")
+            .update({
+                "title": title,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            })
+            .eq("id", conversation_id)
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        if not response.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Conversation not found."
+            )
+
+        return {
+            "status": "success",
+            "message": "Conversation renamed successfully.",
+            "conversation": response.data[0]
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        print("Conversation update failed:", repr(error))
+
+        raise HTTPException(
+            status_code=500,
+            detail="Could not rename conversation."
+        )
+
+
+# ==========================================
+# DELETE AN EXISTING CONVERSATION
+# ==========================================
+
+@app.delete("/api/conversations/{conversation_id}")
+def delete_conversation(
+    conversation_id: str,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    current_user=Depends(get_current_user)
+):
+    try:
+        user_supabase = get_user_supabase(credentials)
+        user_id = str(current_user.id)
+
+        # Confirm conversation ownership before deleting anything.
+        get_owned_conversation(
+            user_supabase,
+            conversation_id,
+            user_id
+        )
+
+        # Delete all messages belonging to this conversation.
+        user_supabase.table("messages").delete().eq(
+            "conversation_id", conversation_id
+        ).eq(
+            "user_id", user_id
+        ).execute()
+
+        # Delete the conversation itself.
+        response = (
+            user_supabase.table("conversations")
+            .delete()
+            .eq("id", conversation_id)
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        if not response.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Conversation not found."
+            )
+
+        return {
+            "status": "success",
+            "message": "Conversation deleted successfully.",
+            "deleted_conversation_id": conversation_id
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        print("Conversation deletion failed:", repr(error))
+
+        raise HTTPException(
+            status_code=500,
+            detail="Could not delete conversation."
+        )
+
+
+    
 
 # ==========================================
 # 20. GET MESSAGES IN A CONVERSATION

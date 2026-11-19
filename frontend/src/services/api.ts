@@ -400,6 +400,36 @@ export async function getConversation(
 
   return response.conversation;
 }
+// Rename an existing conversation.
+export async function renameConversation(
+  conversationId: string,
+  title: string
+): Promise<Conversation> {
+  const response = await apiRequest<SingleConversationResponse>(
+    `/api/conversations/${conversationId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({
+        title: title.trim(),
+      }),
+    }
+  );
+
+  return response.conversation;
+}
+
+// Delete an existing conversation.
+export async function deleteConversation(
+  conversationId: string
+): Promise<void> {
+  await apiRequest<void>(
+    `/api/conversations/${conversationId}`,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
 
 // ==============================
 // MESSAGE MANAGEMENT
