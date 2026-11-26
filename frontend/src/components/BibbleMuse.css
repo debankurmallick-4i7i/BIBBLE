@@ -1,0 +1,789 @@
+/* =========================================
+   BIBBLE MUSE — Animated login character
+   ========================================= */
+
+.bibble-muse-scene {
+  --muse-cream: #fbf2e9;
+  --muse-pink: #e8a6ae;
+  --muse-pink-dark: #c96e81;
+  --muse-brown: #725044;
+  --muse-ink: #5e473d;
+  --muse-sage: #b8c7a7;
+
+  position: relative;
+  width: 100%;
+  max-width: 510px;
+  height: 420px;
+  margin: 25px auto 10px;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Soft background atmosphere */
+
+.bibble-muse-scene::before {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  top: 55px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #f5dfd7;
+  opacity: 0.48;
+  filter: blur(2px);
+  z-index: -1;
+}
+
+.bibble-muse-scene::after {
+  content: '';
+  position: absolute;
+  width: 190px;
+  height: 70px;
+  left: 50%;
+  bottom: 36px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(130, 95, 73, 0.09);
+  filter: blur(20px);
+  z-index: -1;
+}
+
+/* Floating decorative elements */
+
+.muse-spark {
+  position: absolute;
+  color: #c98587;
+  animation: muse-spark-float 4s ease-in-out infinite;
+}
+
+.muse-spark-1 {
+  top: 68px;
+  left: 16%;
+  font-size: 24px;
+}
+
+.muse-spark-2 {
+  top: 112px;
+  right: 15%;
+  font-size: 22px;
+  animation-delay: 1s;
+}
+
+.muse-spark-3 {
+  bottom: 105px;
+  left: 19%;
+  font-size: 40px;
+  animation-delay: 1.6s;
+}
+
+.muse-spark-4 {
+  bottom: 150px;
+  right: 21%;
+  font-size: 15px;
+  animation-delay: 2.2s;
+}
+
+/* Floating handwritten notes */
+
+.muse-floating-note {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 12px 15px;
+  color: #8d665b;
+  background: rgba(255, 251, 247, 0.84);
+  border: 1px solid rgba(222, 190, 175, 0.55);
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(120, 83, 66, 0.06);
+  font-family: Georgia, serif;
+  font-size: 12px;
+  font-style: italic;
+  transform: rotate(-8deg);
+  animation: muse-note-float 5s ease-in-out infinite;
+}
+
+.muse-note-one {
+  top: 76px;
+  right: 8%;
+}
+
+.muse-note-two {
+  left: 9%;
+  bottom: 125px;
+  transform: rotate(8deg);
+  animation-delay: -2.3s;
+}
+
+.note-heart {
+  color: #c77785;
+  font-size: 20px;
+}
+
+/* Orbital doodle rings */
+
+.muse-orbit {
+  position: absolute;
+  border: 1px dashed rgba(192, 142, 129, 0.28);
+  border-radius: 50%;
+  left: 50%;
+  top: 48%;
+  pointer-events: none;
+}
+
+.orbit-one {
+  width: 340px;
+  height: 300px;
+  transform: translate(-50%, -50%) rotate(-14deg);
+}
+
+.orbit-two {
+  width: 285px;
+  height: 360px;
+  transform: translate(-50%, -50%) rotate(25deg);
+  border-color: rgba(192, 142, 129, 0.15);
+}
+
+/* Desk */
+
+.muse-desk {
+  position: absolute;
+  width: 330px;
+  height: 170px;
+  left: 50%;
+  bottom: 65px;
+  transform: translateX(-50%);
+}
+
+.muse-desk::before {
+  content: '';
+  position: absolute;
+  left: -45px;
+  right: -45px;
+  bottom: 15px;
+  height: 18px;
+  border-radius: 50%;
+  background: #d9b7a6;
+  opacity: 0.25;
+  filter: blur(8px);
+}
+
+.muse-paper {
+  position: absolute;
+  width: 110px;
+  height: 135px;
+  left: 30px;
+  bottom: 23px;
+  background: #fffaf5;
+  border: 1px solid #e8d8c8;
+  border-radius: 5px;
+  transform: rotate(-9deg);
+  box-shadow: 2px 7px 15px rgba(112, 82, 63, 0.08);
+}
+
+.paper-lines {
+  position: absolute;
+  top: 30px;
+  left: 15px;
+  right: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.paper-lines span {
+  height: 1px;
+  background: #ecdcd1;
+}
+
+.paper-lines span:nth-child(2) {
+  width: 80%;
+}
+
+.paper-lines span:nth-child(3) {
+  width: 92%;
+}
+
+.paper-lines span:nth-child(4) {
+  width: 58%;
+}
+
+.paper-doodle {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  color: #c87989;
+  font-size: 18px;
+  animation: muse-doodle-heart 3s ease-in-out infinite;
+}
+
+/* The character */
+
+.muse-character {
+  position: absolute;
+  width: 155px;
+  height: 165px;
+  left: 50%;
+  bottom: 35px;
+  transform: translateX(-50%);
+  animation: muse-character-breathe 3.4s ease-in-out infinite;
+}
+
+.muse-shadow {
+  position: absolute;
+  width: 116px;
+  height: 24px;
+  bottom: 5px;
+  left: 20px;
+  background: rgba(104, 70, 53, 0.11);
+  border-radius: 50%;
+  filter: blur(6px);
+}
+
+.muse-body {
+  position: absolute;
+  width: 120px;
+  height: 124px;
+  left: 18px;
+  top: 15px;
+  border-radius: 48% 48% 42% 42%;
+  background: linear-gradient(145deg, #fffdf8 5%, #f4e6d8 100%);
+  border: 1px solid #e8d7c7;
+  box-shadow:
+    inset -8px -8px 15px rgba(194, 155, 127, 0.12),
+    0 8px 18px rgba(115, 83, 66, 0.08);
+}
+
+/* Face */
+
+.muse-eyes {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 23px;
+}
+
+.muse-eye {
+  position: relative;
+  display: block;
+  width: 9px;
+  height: 13px;
+  border-radius: 50%;
+  background: #594438;
+  animation: muse-blink 5.4s infinite;
+}
+
+.eye-pupil {
+  position: absolute;
+  width: 3px;
+  height: 4px;
+  top: 2px;
+  right: 1px;
+  border-radius: 50%;
+  background: #fffaf3;
+}
+
+.muse-mouth {
+  position: absolute;
+  width: 9px;
+  height: 5px;
+  top: 71px;
+  left: 55px;
+  border-bottom: 1.5px solid #8c6554;
+  border-radius: 0 0 50% 50%;
+}
+
+.muse-blush {
+  position: absolute;
+  width: 17px;
+  height: 9px;
+  top: 63px;
+  border-radius: 50%;
+  background: #eab7b1;
+  opacity: 0.5;
+  filter: blur(1px);
+}
+
+.blush-left {
+  left: 20px;
+}
+
+.blush-right {
+  right: 20px;
+}
+
+/* Arms */
+
+.muse-arm {
+  position: absolute;
+  width: 30px;
+  height: 17px;
+  top: 87px;
+  background: #f3e3d4;
+  border: 1px solid #e8d7c7;
+  border-radius: 50%;
+}
+
+.arm-left {
+  left: -14px;
+  transform: rotate(-32deg);
+}
+
+.arm-right {
+  right: -14px;
+  transform: rotate(32deg);
+}
+
+/* Feet */
+
+.muse-feet {
+  position: absolute;
+  left: 38px;
+  right: 38px;
+  bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.muse-feet span {
+  width: 25px;
+  height: 13px;
+  border-radius: 50%;
+  background: #ead8c9;
+}
+
+/* Pencil */
+
+.muse-pencil {
+  position: absolute;
+  z-index: 4;
+  width: 11px;
+  height: 90px;
+  left: 111px;
+  top: 76px;
+  transform: rotate(38deg);
+  transform-origin: 50% 90%;
+  animation: muse-pencil-write 2.2s ease-in-out infinite;
+}
+
+.pencil-body {
+  position: absolute;
+  inset: 8px 0 12px;
+  border-radius: 4px;
+  background: #dba56d;
+  border: 1px solid #c48b54;
+}
+
+.pencil-band {
+  position: absolute;
+  bottom: 10px;
+  height: 7px;
+  left: 0;
+  right: 0;
+  background: #f0d1a5;
+}
+
+.pencil-eraser {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  border-radius: 4px 4px 1px 1px;
+  background: #d99ba7;
+}
+
+.pencil-wood {
+  position: absolute;
+  bottom: 0;
+  left: 2px;
+  width: 7px;
+  height: 12px;
+  background: #d9b38a;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* Password eye cover */
+
+.muse-cover-eyes {
+  position: absolute;
+  top: 60px;
+  left: 38px;
+  display: flex;
+  gap: 9px;
+  opacity: 0;
+  transform: translateY(-10px) rotate(-12deg);
+  pointer-events: none;
+}
+
+.muse-cover-eyes span {
+  width: 31px;
+  height: 24px;
+  background: #f0d9c7;
+  border: 1px solid #e1c5b3;
+  border-radius: 8px 8px 14px 14px;
+}
+
+/* Book */
+
+.muse-book {
+  position: absolute;
+  width: 82px;
+  height: 58px;
+  bottom: 15px;
+  right: 8px;
+  transform: rotate(8deg);
+}
+
+.book-cover {
+  position: absolute;
+  inset: 0 7px 0 0;
+  border-radius: 5px;
+  background: #b8c6a7;
+  box-shadow: 2px 5px 8px rgba(112, 82, 63, 0.1);
+}
+
+.book-pages {
+  position: absolute;
+  right: 0;
+  top: 3px;
+  width: 6px;
+  height: 52px;
+  background: #fff5e9;
+  border-radius: 0 4px 4px 0;
+}
+
+.book-flower {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  color: #f7eee2;
+  font-size: 14px;
+}
+
+.book-title {
+  position: absolute;
+  left: 12px;
+  bottom: 7px;
+  font-family: Georgia, serif;
+  font-size: 9px;
+  line-height: 1.2;
+  color: #fffaf1;
+}
+
+/* Teacup */
+
+.muse-teacup {
+  position: absolute;
+  left: 0;
+  bottom: 20px;
+  width: 42px;
+  height: 43px;
+}
+
+.cup-body {
+  position: absolute;
+  bottom: 0;
+  width: 33px;
+  height: 29px;
+  border-radius: 5px 5px 12px 12px;
+  background: #d9a2a3;
+  border: 1px solid #c9898f;
+  display: grid;
+  place-items: center;
+  color: #fff4ed;
+  font-size: 11px;
+}
+
+.cup-top {
+  position: absolute;
+  top: 9px;
+  left: -2px;
+  width: 37px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f6e9df;
+  border: 1px solid #d9b6a8;
+  z-index: 2;
+}
+
+.cup-handle {
+  position: absolute;
+  right: 1px;
+  top: 15px;
+  width: 14px;
+  height: 16px;
+  border: 3px solid #c9898f;
+  border-radius: 50%;
+}
+
+/* Caption */
+
+.muse-caption {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: 90%;
+  color: #977c70;
+  font-size: 11px;
+  letter-spacing: 0.15px;
+}
+
+.caption-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #d39a91;
+}
+
+/* =========================================
+   ANIMATIONS
+   ========================================= */
+
+@keyframes muse-character-breathe {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-5px);
+  }
+}
+
+@keyframes muse-blink {
+  0%, 44%, 48%, 100% {
+    transform: scaleY(1);
+  }
+  46% {
+    transform: scaleY(0.08);
+  }
+}
+
+@keyframes muse-pencil-write {
+  0%, 100% {
+    transform: rotate(38deg);
+  }
+  50% {
+    transform: rotate(31deg) translateY(2px);
+  }
+}
+
+@keyframes muse-note-float {
+  0%, 100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -10px;
+  }
+}
+
+@keyframes muse-spark-float {
+  0%, 100% {
+    translate: 0 0;
+    rotate: 0deg;
+    opacity: 0.7;
+  }
+  50% {
+    translate: 4px -8px;
+    rotate: 12deg;
+    opacity: 1;
+  }
+}
+
+@keyframes muse-doodle-heart {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.15) rotate(-8deg);
+  }
+}
+
+/* =========================================
+   REACTIONS
+   ========================================= */
+
+/* Email: curious look toward the user */
+
+.mood-email .eye-pupil {
+  transform: translateX(2px);
+}
+
+.mood-email .muse-character {
+  animation-duration: 2.4s;
+}
+
+/* Password: covers eyes */
+
+.mood-password .muse-cover-eyes {
+  opacity: 1;
+  transform: translateY(0) rotate(-12deg);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.mood-password .muse-eye {
+  animation-play-state: paused;
+}
+
+.mood-password .muse-pencil {
+  animation-play-state: paused;
+}
+
+/* Error: little wobble */
+
+.mood-error .muse-character {
+  animation: muse-error-wobble 0.45s ease-in-out 2;
+}
+
+.mood-error .muse-mouth {
+  width: 10px;
+  height: 7px;
+  top: 68px;
+  border-top: 1.5px solid #8c6554;
+  border-bottom: 0;
+  border-radius: 50%;
+}
+
+@keyframes muse-error-wobble {
+  0%, 100% {
+    transform: translateX(-50%) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-50%) rotate(-5deg);
+  }
+  75% {
+    transform: translateX(-50%) rotate(5deg);
+  }
+}
+
+/* Success: happy bounce */
+
+.mood-success .muse-character {
+  animation: muse-success-bounce 0.65s ease-in-out 3;
+}
+
+.mood-success .muse-mouth {
+  width: 14px;
+  height: 8px;
+  left: 52px;
+  top: 69px;
+  border-bottom-width: 2px;
+}
+
+.mood-success .muse-spark {
+  animation-duration: 0.8s;
+}
+
+@keyframes muse-success-bounce {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-18px) rotate(-4deg);
+  }
+}
+
+/* Responsive */
+
+@media (max-width: 850px) {
+  .bibble-muse-scene {
+    max-width: 430px;
+    height: 365px;
+    transform: scale(0.92);
+    transform-origin: center;
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 650px) {
+  .bibble-muse-scene {
+    display: none;
+  }
+}
+
+/* Accessibility */
+
+@media (prefers-reduced-motion: reduce) {
+  .bibble-muse-scene *,
+  .bibble-muse-scene *::before,
+  .bibble-muse-scene *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+/* ── Bibble's secret-agent mode 🕶️ ── */
+
+.muse-sunglasses {
+  position: absolute;
+  top: 37%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.85);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+  transition:
+    opacity 0.25s ease,
+    transform 0.3s ease;
+}
+
+.sunglass-lens {
+  width: 25px;
+  height: 17px;
+  background: #463B43;
+  border: 2px solid #2E2930;
+  border-radius: 5px 5px 9px 9px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
+}
+
+.sunglass-lens::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  width: 8px;
+  height: 3px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.35);
+  transform: rotate(-20deg);
+}
+
+.sunglass-bridge {
+  position: absolute;
+  width: 7px;
+  height: 3px;
+  background: #2E2930;
+  left: 50%;
+  top: 5px;
+  transform: translateX(-50%);
+}
+
+/* Sunglasses appear only during password focus */
+.mood-password .muse-sunglasses {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.mood-password .muse-eyes {
+  opacity: 0;
+}
+
+/* Old eye-covering overlay is no longer used */
+.muse-cover-eyes {
+  display: none !important;
+}
