@@ -536,3 +536,16 @@ form {
     padding-left: 17px;
   }
 }
+.welcome-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.welcome-footer-text {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}

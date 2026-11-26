@@ -33,6 +33,14 @@ import Templates from './pages/Templates'
 
 import './App.css'
 
+
+import BibbleMuse from './components/BibbleMuse'
+
+import MiniMuse from './components/MiniMuse'
+
+import LiveDateTime from './components/LiveDateTime'
+
+
 type AppView =
   | 'dashboard'
   | 'workspace'
@@ -110,6 +118,11 @@ function App() {
 
   const [notice, setNotice] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const [museMood, setMuseMood] = useState<
+  'idle' | 'email' | 'password' | 'error' | 'success'
+>('idle')
+
 
   const [isAuthenticated, setIsAuthenticated] =
     useState(restoreSession)
@@ -303,13 +316,16 @@ function App() {
         setNotice('')
         setIsAuthenticated(true)
       }
-    } catch (error) {
-      setNotice(
-        error instanceof Error
-          ? error.message
-          : 'Something went wrong. Please try again.'
-      )
-    } finally {
+ } catch (error) {
+  setMuseMood('error')
+
+  setNotice(
+    error instanceof Error
+      ? error.message
+      : 'Something went wrong. Please try again.'
+  )
+} 
+    finally {
       setIsSubmitting(false)
     }
   }
@@ -751,11 +767,13 @@ function App() {
             <p className="welcome-bengali">
               প্রতিটি ভাবনারই একটা গল্প আছে।
             </p>
-
+            
             <p className="welcome-description">
               Find your words, explore your imagination, and create
               something that feels entirely yours.
             </p>
+            <BibbleMuse mood={museMood} />
+
 
             <div className="feature-list">
               <div className="feature-item">
@@ -784,9 +802,13 @@ function App() {
             </div>
           </div>
 
-          <p className="welcome-footer">
-            Made for the curious, the dreamers and the storytellers.
-          </p>
+         <div className="welcome-footer">
+  <span className="welcome-footer-text">
+    Made for the curious, the dreamers and the storytellers.
+  </span>
+
+  <LiveDateTime />
+</div>
         </aside>
 
         <section className="form-panel">
@@ -797,7 +819,7 @@ function App() {
               </span>
               <span className="brand-name">Bibble</span>
             </div>
-
+            <MiniMuse />
             <div className="form-heading">
               <span className="eyebrow">
                 YOUR CREATIVE SPACE
@@ -871,17 +893,18 @@ function App() {
                   Email address
                 </label>
 
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(event) =>
-                    setEmail(event.target.value)
-                  }
-                  autoComplete="email"
-                  required
-                />
+               <input
+         id="email"
+         type="email"
+        placeholder="you@example.com"
+     value={email}
+        onChange={(event) =>
+         setEmail(event.target.value)
+        }
+  onFocus={() => setMuseMood('email')}
+      autoComplete="email"
+       required
+              />
               </div>
 
               <div className="form-field">
@@ -906,6 +929,7 @@ function App() {
                     onChange={(event) =>
                       setPassword(event.target.value)
                     }
+                    onFocus={() => setMuseMood('password')}
                     autoComplete={
                       isRegister
                         ? 'new-password'
