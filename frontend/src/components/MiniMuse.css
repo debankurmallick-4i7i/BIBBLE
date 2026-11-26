@@ -1,0 +1,214 @@
+/* Mini companions — Bibble login screen */
+
+.mini-muse-area {
+  position: relative;
+  width: 100%;
+  height: 145px;
+  overflow: hidden;
+  margin: 0 auto 12px;
+}
+
+/* Shared character */
+.mini-creature {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: companion-float 4.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.blob-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 48% 52% 45% 55% / 55% 45% 55% 45%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Faces */
+.blob-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.blob-eye {
+  position: absolute;
+  width: 4px;
+  height: 5px;
+  background: #514047;
+  border-radius: 50%;
+  top: 43%;
+}
+
+.left-eye {
+  left: 35%;
+}
+
+.right-eye {
+  right: 35%;
+}
+
+.blob-mouth {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translateX(-50%);
+}
+
+.tiny-smile {
+  width: 7px;
+  height: 4px;
+  border-bottom: 1.5px solid #514047;
+  border-radius: 0 0 50% 50%;
+}
+
+.happy-mouth {
+  width: 10px;
+  height: 6px;
+  border-bottom: 2px solid #514047;
+  border-radius: 0 0 50% 50%;
+}
+
+/* Lavender */
+.lavender-creature {
+  width: 66px;
+  height: 62px;
+  animation-delay: -1.4s;
+}
+
+.lavender-creature .blob-body {
+  background: linear-gradient(160deg, #EBD7FF, #B993E9);
+  box-shadow:
+    inset 0 -5px 8px rgba(139, 91, 184, 0.12),
+    0 4px 10px rgba(163, 126, 192, 0.08);
+}
+
+/* Pink — the slightly bigger friend */
+.pink-creature {
+  width: 78px;
+  height: 90px;
+  animation-delay: -0.5s;
+}
+
+.pink-creature .blob-body {
+  background: linear-gradient(160deg, #FFDDE7, #FFA7BF);
+  border: 1px solid rgba(237, 119, 157, 0.28);
+  border-radius: 48% 52% 42% 58% / 46% 44% 56% 54%;
+  box-shadow:
+    inset 0 -7px 10px rgba(226, 104, 143, 0.12),
+    0 5px 12px rgba(228, 131, 160, 0.08);
+}
+
+/* Pink blush */
+.blob-blush {
+  position: absolute;
+  top: 49%;
+  width: 9px;
+  height: 5px;
+  background: rgba(242, 130, 162, 0.48);
+  border-radius: 50%;
+}
+
+.left-blush {
+  left: 20%;
+}
+
+.right-blush {
+  right: 20%;
+}
+
+/* Tiny arms */
+.blob-arm {
+  position: absolute;
+  width: 15px;
+  height: 22px;
+  background: #FFB4C9;
+  border: 1px solid rgba(237, 119, 157, 0.25);
+  border-radius: 50%;
+  top: 54%;
+  z-index: -1;
+}
+
+.left-arm {
+  left: -5px;
+  rotate: 25deg;
+}
+
+.right-arm {
+  right: -5px;
+  rotate: -25deg;
+}
+
+/* Tiny feet */
+.blob-foot {
+  position: absolute;
+  bottom: -3px;
+  width: 17px;
+  height: 11px;
+  background: #FFB4C9;
+  border-radius: 50%;
+}
+
+.left-foot {
+  left: 22%;
+}
+
+.right-foot {
+  right: 22%;
+}
+
+/* Yellow */
+.yellow-creature {
+  width: 57px;
+  height: 57px;
+  animation-delay: -2.2s;
+}
+
+.yellow-creature .blob-body {
+  background: linear-gradient(160deg, #FFEAB8, #F9CF72);
+  box-shadow:
+    inset 0 -4px 8px rgba(206, 157, 58, 0.10),
+    0 4px 10px rgba(209, 175, 102, 0.08);
+}
+
+/* Floating */
+@keyframes companion-float {
+  0%, 100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -8px;
+  }
+}
+
+/* Responsive */
+@media (max-width: 650px) {
+  .mini-muse-area {
+    height: 125px;
+    margin-bottom: 6px;
+  }
+
+  .lavender-creature {
+    scale: 0.9;
+  }
+
+  .pink-creature {
+    scale: 0.92;
+  }
+
+  .yellow-creature {
+    scale: 0.9;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .mini-creature {
+    animation: none !important;
+  }
+}
