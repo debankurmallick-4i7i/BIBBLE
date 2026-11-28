@@ -14,6 +14,8 @@ export type MuseMood =
   | 'caught'
   | 'innocent'
   | 'confused'
+  | 'sneaking'
+  | 'suspicious'
 
 type BibbleMuseProps = {
   mood?: MuseMood
@@ -39,6 +41,8 @@ function BibbleMuse({
     caught: 'who, me? innocent!',
     innocent: 'just a little thought...',
     confused: 'wait... what happened?',
+    sneaking: 'just a tiny peek...',
+    suspicious: 'hmm... something feels fishy',
   }
 
   return (

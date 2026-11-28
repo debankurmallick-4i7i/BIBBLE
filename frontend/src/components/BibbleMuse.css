@@ -941,3 +941,141 @@
     transition: none !important;
   }
 }
+
+/* =========================================
+   BIBBLE SECRET PASSWORD REACTIONS
+   ========================================= */
+
+/* Sneaking a peek 👀 */
+.mood-sneaking .muse-character {
+  animation: muse-sneak 1.8s ease-in-out infinite;
+}
+
+.mood-sneaking .eye-pupil {
+  transform: translate(-5px, 2px);
+}
+
+.mood-sneaking .muse-eyes {
+  animation: muse-sneak-eyes 1.8s ease-in-out infinite;
+}
+
+.mood-sneaking .muse-arm.arm-right {
+  transform: rotate(-18deg);
+}
+
+/* Caught! Looking away 😳 */
+.mood-caught .muse-character {
+  animation: muse-caught 0.45s ease-out;
+}
+
+.mood-caught .eye-pupil {
+  transform: translate(7px, 1px);
+}
+
+.mood-caught .muse-eyes {
+  animation: muse-look-away 0.45s ease-out;
+}
+
+.mood-caught .muse-blush {
+  opacity: 1;
+  transform: scale(1.35);
+}
+
+/* Acting innocent afterwards 😇 */
+.mood-innocent .muse-character {
+  animation: muse-innocent 2s ease-in-out infinite;
+}
+
+.mood-innocent .eye-pupil {
+  transform: translate(0, 0);
+}
+
+.mood-innocent .muse-mouth {
+  transform: scale(1.1);
+}
+
+/* Failed login — suspicious little stare 🤨 */
+.mood-suspicious .muse-character {
+  animation: muse-suspicious 0.6s ease-out;
+}
+
+.mood-suspicious .muse-eyes {
+  transform: translateY(3px) scaleY(0.78);
+}
+
+.mood-suspicious .eye-pupil {
+  transform: translate(-5px, 1px);
+}
+
+.mood-suspicious .muse-blush {
+  opacity: 0.35;
+}
+
+.mood-suspicious .muse-mouth {
+  transform: scaleX(0.75);
+}
+
+/* Animations */
+
+@keyframes muse-sneak {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(3px) rotate(-2deg);
+  }
+}
+
+@keyframes muse-sneak-eyes {
+  0%, 100% {
+    transform: translateX(-2px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes muse-caught {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.08) rotate(3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes muse-look-away {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(8px);
+  }
+}
+
+@keyframes muse-innocent {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes muse-suspicious {
+  0% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(-3deg) translateX(-2px);
+  }
+  60% {
+    transform: rotate(2deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
