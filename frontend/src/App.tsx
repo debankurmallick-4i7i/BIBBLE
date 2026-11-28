@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react'
+import { useState, useEffect, useRef, type FormEvent } from 'react'
 
 import {
   Feather,
@@ -119,9 +119,18 @@ function App() {
   const [notice, setNotice] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const [museMood, setMuseMood] = useState<
-  'idle' | 'email' | 'password' | 'error' | 'success'
+const [museMood, setMuseMood] = useState<
+  | 'idle'
+  | 'email'
+  | 'password'
+  | 'error'
+  | 'success'
+  | 'sneaking'
+  | 'caught'
+  | 'innocent'
+  | 'suspicious'
 >('idle')
+
 
 
   const [isAuthenticated, setIsAuthenticated] =
@@ -151,6 +160,44 @@ function App() {
     useState(false)
 
   const isRegister = mode === 'register'
+
+  // Bibble's password-reaction timer.
+const innocentTimer = useRef<number | null>(null)
+
+function clearInnocentTimer() {
+  if (innocentTimer.current !== null) {
+    window.clearTimeout(innocentTimer.current)
+    innocentTimer.current = null
+  }
+}
+
+// Reveal / hide password reactions.
+function togglePasswordVisibility() {
+  const revealing = !showPassword
+
+  setShowPassword(revealing)
+  clearInnocentTimer()
+
+  if (revealing) {
+    // Oh no, she got caught!
+    setMuseMood('caught')
+
+    innocentTimer.current = window.setTimeout(() => {
+      setMuseMood('innocent')
+      innocentTimer.current = null
+    }, 1300)
+  } else {
+    // Password hidden again. Back to sneaking.
+    setMuseMood('sneaking')
+  }
+}
+
+// Clean up the timer if the component unmounts.
+useEffect(() => {
+  return () => clearInnocentTimer()
+}, [])
+
+
 
   // Load the real profile whenever an authenticated session is available.
   useEffect(() => {
@@ -316,27 +363,30 @@ function App() {
         setNotice('')
         setIsAuthenticated(true)
       }
- } catch (error) {
-  setMuseMood('error')
+} catch (error) {
+  setMuseMood(isRegister ? 'error' : 'suspicious')
 
   setNotice(
     error instanceof Error
       ? error.message
       : 'Something went wrong. Please try again.'
   )
-} 
+}
     finally {
       setIsSubmitting(false)
     }
   }
 
-  function changeMode(
-    nextMode: 'login' | 'register'
-  ) {
-    setMode(nextMode)
-    setNotice('')
-    setPassword('')
-  }
+function changeMode(
+  nextMode: 'login' | 'register'
+) {
+  clearInnocentTimer()
+  setMode(nextMode)
+  setNotice('')
+  setPassword('')
+  setShowPassword(false)
+  setMuseMood('idle')
+}
 
   // Open the general AI Companion.
   function openCompanion(prompt = '') {
@@ -632,9 +682,10 @@ function App() {
                   id="profile-display-name"
                   type="text"
                   value={profileName}
-                  onChange={(event) =>
-                    setProfileName(event.target.value)
-                  }
+                  onChange={(event) => {
+                  setPassword(event.target.value)
+                  setMuseMood(showPassword ? 'innocent' : 'sneaking')
+                   }}
                   maxLength={80}
                   required
                   style={{
@@ -929,7 +980,9 @@ function App() {
                     onChange={(event) =>
                       setPassword(event.target.value)
                     }
-                    onFocus={() => setMuseMood('password')}
+                    onFocus={() => {
+                     setMuseMood(showPassword ? 'innocent' : 'sneaking')
+                      }}
                     autoComplete={
                       isRegister
                         ? 'new-password'
@@ -942,9 +995,7 @@ function App() {
                   <button
                     type="button"
                     className="password-toggle"
-                    onClick={() =>
-                      setShowPassword(!showPassword)
-                    }
+                    onClick={togglePasswordVisibility}
                     aria-label={
                       showPassword
                         ? 'Hide password'
